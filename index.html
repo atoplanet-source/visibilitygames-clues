@@ -497,41 +497,47 @@
 
       const prompt = `You are helping create clues for a celebrity guessing game called "Who's That?"
 
-Celebrity: ${celeb.Answer}
+=== THE CELEBRITY ===
+Name: ${celeb.Answer}
 Category: ${celeb.Category}
 
-Current clues:
+Current clues for this person:
 ${currentClues}
 
-Generate a NEW ${remakeTarget.clueKey}: ${clueDescriptions[remakeTarget.clueNum]}
+=== YOUR TASK ===
+Generate a NEW ${remakeTarget.clueKey} specifically about ${celeb.Answer}.
+
+${remakeTarget.clueKey} should be: ${clueDescriptions[remakeTarget.clueNum]}
 
 ${note ? `User's guidance: "${note}"` : ''}
 
-RESEARCH & CREATE AN INTERESTING CLUE:
-- Must be a REAL, verifiable fact (do your research!)
-- Focus on INTERESTING and WEIRD over just "specific"
-- The vibe: "hmm that's strange, I wonder who that is?" → "oh wow I never knew that about them!"
-- Think celebrity fun facts that make people go "wait, really??"
+=== CRITICAL: RESEARCH THIS SPECIFIC PERSON ===
+You MUST research ${celeb.Answer} and find a REAL fact about THEM specifically.
+- What are lesser-known facts about ${celeb.Answer}?
+- What weird quirks, incidents, or stories involve ${celeb.Answer}?
+- What would surprise people to learn about ${celeb.Answer}?
 
-GOOD CLUES (interesting, niche, make you think):
-- "Food poisoning flu game" (weird specific incident)
-- "Terrified of butterflies" (unexpected quirk)
-- "Ate only potatoes for a year" (strange but true)
-- "Named after a department store" (unusual origin)
-- "Legally changed name to a symbol" (iconic weird fact)
+The clue MUST be:
+1. A TRUE, VERIFIABLE fact about ${celeb.Answer} (not made up)
+2. Interesting/weird enough to make people think "hmm, who could that be?"
+3. Actually about THIS person, not a generic clue that could fit anyone
 
-BAD CLUES (generic, boring, too broad):
-- "Grammy winner" (who cares, so generic)
-- "From California" (tells you nothing)
-- "Known for comedy" (lazy, not interesting)
-- "Has 3 kids" (boring unless there's something weird about it)
-
-FORMAT: 
+=== FORMAT ===
 - Max 28 characters (aim for 15-23)
 - Crossword-style punchy phrase that makes sense
 - No full sentences
 
-Respond with ONLY the new clue text. No quotes, no explanation.`;
+=== BAD (generic, could be anyone) ===
+- "Grammy winner" 
+- "From California"
+- "Known for comedy"
+
+=== GOOD (specific to the actual person) ===
+- "Food poisoning flu game" (MJ's real incident)
+- "Terrified of butterflies" (Nicole Kidman's actual phobia)
+- "Ate only potatoes for a year" (real method acting story)
+
+Respond with ONLY the new clue text about ${celeb.Answer}. No quotes, no explanation.`;
 
       try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
