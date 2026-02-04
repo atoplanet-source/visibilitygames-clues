@@ -486,11 +486,11 @@
       btn.innerHTML = '<div class="loader"></div> Generating...';
 
       const clueDescriptions = {
-        1: "Super niche, weird, obscure fact that makes people say 'wait, what?' - something most people don't know. Should be funny/interesting.",
-        2: "Interesting but still obscure - a fun fact that's not widely known",
-        3: "The 'aha' giveaway moment - if you know this person, THIS is the clue that makes you go 'oh shit, I know who this is!' It should be a well-known fact about them but phrased cleverly.",
-        4: "Getting obvious - a well-known fact that narrows it down significantly",
-        5: "Dead giveaway - the most famous/obvious thing about them, their signature thing"
+        1: "Super niche, specific trivia - a REAL, verifiable fact most people don't know. Should make people say 'wait, really??' Think celebrity fun fact listicle.",
+        2: "Interesting lesser-known fact - specific detail that's true but not widely known. Include numbers, names, or specific details when possible.",
+        3: "The 'aha' giveaway moment - THIS is where fans go 'oh shit, I know who this is!' Must be a well-known signature fact phrased cleverly.",
+        4: "Getting obvious - a famous, well-known fact that narrows it down clearly",
+        5: "Dead giveaway - their most famous thing, nickname, or signature catchphrase"
       };
 
       const currentClues = clueFields.map(f => `${f.label}: ${celeb[f.key] || '(empty)'}`).join('\n');
@@ -503,20 +503,30 @@ Category: ${celeb.Category}
 Current clues:
 ${currentClues}
 
-I need you to generate a NEW ${remakeTarget.clueKey} for this celebrity.
+Generate a NEW ${remakeTarget.clueKey}: ${clueDescriptions[remakeTarget.clueNum]}
 
-${remakeTarget.clueKey} should be: ${clueDescriptions[remakeTarget.clueNum]}
+${note ? `User's guidance: "${note}"` : ''}
 
-${note ? `User's note: "${note}"` : ''}
+CRITICAL - MUST BE FACTUAL:
+- Use REAL, verifiable facts only (not made up)
+- Include specific details: numbers, dates, names, stats
+- Think "celebrity fun facts listicle" energy
+- The kind of trivia that makes people say "no way, that's true??"
 
-Requirements:
-- Maximum 25 characters (shorter is better, aim for 15-20)
-- Phrased like a crossword clue (punchy, clever, fun)
-- Should be a FUN fact that makes people say "no way!" or "that's crazy!"
-- Don't repeat information from the other clues
-- No full sentences, just punchy phrases
+Good example clues:
+- "Food poisoning flu game" (specific incident)
+- "Terrified of butterflies" (real phobia)  
+- "$7 to highest paid actor" (specific journey)
+- "Won Slam while pregnant" (verifiable fact)
 
-Respond with ONLY the new clue text, nothing else. No quotes, no explanation.`;
+Bad clues to avoid:
+- Generic facts ("Won awards", "From LA")
+- Vague descriptions ("Known for comedy")
+- Made-up or unverifiable claims
+
+Format: Max 25 chars, crossword-style (punchy phrase, no sentences)
+
+Respond with ONLY the new clue text. No quotes, no explanation.`;
 
       try {
         const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -631,32 +641,48 @@ Respond with ONLY the new clue text, nothing else. No quotes, no explanation.`;
 
 ${categoryText}
 
-IMPORTANT DIVERSITY REQUIREMENTS:
-- Include people from diverse backgrounds, ethnicities, and cultures
-- Include international celebrities, not just American
-- Mix of genders
-- Mix of eras (some current, some classic)
+DIVERSITY REQUIREMENTS:
+- Diverse backgrounds, ethnicities, cultures, and nationalities
+- International celebrities, not just American
+- Mix of genders and eras (current + classic)
 - NOT too heavy on any single category
-- Should be recognizable to a general audience but not generic/obvious
+- Recognizable to a general audience but not generic/obvious
 
-For each celebrity, create 5 clues following this EXACT difficulty progression:
-- Clue 1: Super niche, weird fact that makes people go "wait, what?!" - funny/interesting trivia most don't know
-- Clue 2: Still obscure but interesting fact
-- Clue 3: THE "AHA" MOMENT - this is where someone who knows the person should go "oh shit, I know who this is!" Make it a well-known fact phrased cleverly.
-- Clue 4: Getting obvious - narrows it down clearly
-- Clue 5: Dead giveaway - their most famous thing/nickname
+RESEARCH-BASED CLUES - THIS IS CRITICAL:
+Each clue must be a REAL, VERIFIABLE fact. Think "celebrity fun facts listicle" energy:
+- Specific numbers (ages, amounts, dates, stats)
+- Real incidents, quirks, or stories from their life
+- Actual quotes, nicknames, or things they're known for saying/doing
+- Real connections to other celebrities, places, or events
+- The kind of trivia that makes people say "wait, really??" because it's TRUE
 
-CLUE REQUIREMENTS:
-- Maximum 25 characters each (aim for 15-20)
-- Phrased like crossword clues (punchy, no full sentences)
-- Fun, surprising, "no way!" energy
-- Clue 3 MUST be recognizable to fans${excludeText}
+EXAMPLES OF GOOD CLUES (specific, factual, fun):
+- "Food poisoning flu game" (MJ's famous 1997 finals game)
+- "Terrified of butterflies" (Nicole Kidman's real phobia)
+- "$7 to highest paid actor" (The Rock's rags to riches)
+- "Wore #12 once, scored 49" (MJ's jersey was stolen)
+- "Won Slam while pregnant" (Serena's 2017 Australian Open)
 
-Return as JSON array with this exact format:
-[
-  {"Answer": "Name", "Category": "Category", "Clue 1": "...", "Clue 2": "...", "Clue 3": "...", "Clue 4": "...", "Clue 5": "..."},
-  ...
-]
+EXAMPLES OF BAD CLUES (generic, vague, unverifiable):
+- "Grammy winner" (too generic)
+- "From California" (too broad)
+- "Known for comedy" (not specific)
+- "Has a famous laugh" (unverifiable)
+
+5 CLUE PROGRESSION:
+- Clue 1: Super niche trivia - obscure but TRUE fact that makes people go "wait, what?!"
+- Clue 2: Interesting lesser-known fact - specific detail most don't know
+- Clue 3: THE "AHA" GIVEAWAY - well-known signature fact that fans instantly recognize, phrased cleverly
+- Clue 4: Getting obvious - famous fact that narrows it down clearly
+- Clue 5: Dead giveaway - their most famous thing, nickname, or signature
+
+FORMATTING:
+- Maximum 25 characters (aim for 15-20)
+- Crossword clue style (punchy phrases, no full sentences)
+- Include specific details when possible (numbers, names, years)${excludeText}
+
+Return as JSON array:
+[{"Answer": "Name", "Category": "Category", "Clue 1": "...", "Clue 2": "...", "Clue 3": "...", "Clue 4": "...", "Clue 5": "..."}, ...]
 
 Return ONLY the JSON array, no other text.`;
 
