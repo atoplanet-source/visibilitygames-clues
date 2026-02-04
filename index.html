@@ -7,7 +7,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: #111827; }
-    .loader { border: 2px solid #374151; border-top: 2px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; }
+    .loader { border: 2px solid #374151; border-top: 2px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; }
+    .loader-lg { width: 24px; height: 24px; border-width: 3px; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
@@ -16,7 +17,7 @@
     <!-- Header -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold mb-2">Who's That? Clue Reviewer + AI</h1>
-      <p class="text-gray-400">Upload, edit, and use AI to regenerate clues on demand</p>
+      <p class="text-gray-400">Upload, edit, generate, and review clues for the celebrity guessing game</p>
     </div>
 
     <!-- API Key Section -->
@@ -33,12 +34,28 @@
       <p class="text-xs text-gray-500 mt-2">Get your key at <a href="https://console.anthropic.com" target="_blank" class="text-blue-400 hover:underline">console.anthropic.com</a> → API Keys</p>
     </div>
 
-    <!-- Upload Section -->
-    <div id="uploadSection" class="border-2 border-dashed border-gray-600 rounded-xl p-12 text-center cursor-pointer hover:border-blue-500 transition-colors" onclick="document.getElementById('fileInput').click()">
-      <svg class="w-12 h-12 mx-auto mb-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-      <p class="text-lg mb-2">Upload your CSV file</p>
-      <p class="text-gray-500 text-sm">Format: Answer, Clue 1-5, Category</p>
-      <input type="file" id="fileInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
+    <!-- Upload / Generate Section -->
+    <div id="uploadSection" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center cursor-pointer hover:border-blue-500 transition-colors" onclick="document.getElementById('fileInput').click()">
+        <svg class="w-10 h-10 mx-auto mb-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <p class="text-lg mb-1">Upload CSV</p>
+        <p class="text-gray-500 text-sm">Review existing clues</p>
+        <input type="file" id="fileInput" accept=".csv" class="hidden" onchange="handleFileUpload(event)">
+      </div>
+      
+      <div class="border-2 border-dashed border-purple-600/50 rounded-xl p-8 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-600/10 transition-colors" onclick="openGenerateModal()">
+        <svg class="w-10 h-10 mx-auto mb-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <p class="text-lg mb-1 text-purple-300">Generate New Batch</p>
+        <p class="text-gray-500 text-sm">AI creates 20-50 celebs + clues</p>
+      </div>
+    </div>
+
+    <!-- Generated Count Info -->
+    <div id="masterListInfo" class="hidden mb-6 bg-gray-800/50 rounded-lg p-3 flex items-center justify-between">
+      <span class="text-sm text-gray-400">
+        <span id="masterCount">0</span> celebs in master list (avoiding duplicates)
+      </span>
+      <button onclick="clearMasterList()" class="text-xs text-red-400 hover:text-red-300">Clear list</button>
     </div>
 
     <!-- Main Content (hidden until file loaded) -->
@@ -68,8 +85,8 @@
           <span class="text-sm text-gray-400">Show only pending</span>
         </label>
 
-        <button onclick="document.getElementById('fileInput').click()" class="ml-auto text-sm text-gray-400 hover:text-white transition-colors">
-          Upload new file
+        <button onclick="showUploadSection()" class="ml-auto text-sm text-gray-400 hover:text-white transition-colors">
+          ← Back to start
         </button>
       </div>
 
@@ -158,21 +175,86 @@
     </div>
   </div>
 
+  <!-- Generate Batch Modal -->
+  <div id="generateModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-lg mx-4">
+      <h3 class="text-xl font-bold mb-2">Generate New Batch</h3>
+      <p class="text-gray-400 text-sm mb-6">AI will create celebrities with 5 clues each, then download as CSV for review</p>
+
+      <!-- Count Selector -->
+      <div class="mb-6">
+        <label class="text-sm text-gray-400 mb-2 block">How many celebrities?</label>
+        <div class="flex gap-2">
+          <button onclick="setGenerateCount(10)" class="gen-count-btn px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" data-count="10">10</button>
+          <button onclick="setGenerateCount(20)" class="gen-count-btn px-4 py-2 bg-purple-600 rounded-lg transition-colors" data-count="20">20</button>
+          <button onclick="setGenerateCount(30)" class="gen-count-btn px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" data-count="30">30</button>
+          <button onclick="setGenerateCount(50)" class="gen-count-btn px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" data-count="50">50</button>
+        </div>
+      </div>
+
+      <!-- Category Focus -->
+      <div class="mb-6">
+        <label class="text-sm text-gray-400 mb-2 block">Category mix (select multiple for variety)</label>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="toggleCategory('Actor')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Actor">🎬 Actor</button>
+          <button onclick="toggleCategory('Musician')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Musician">🎵 Musician</button>
+          <button onclick="toggleCategory('Athlete')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Athlete">⚽ Athlete</button>
+          <button onclick="toggleCategory('Comedian')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Comedian">😂 Comedian</button>
+          <button onclick="toggleCategory('TV Personality')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="TV Personality">📺 TV</button>
+          <button onclick="toggleCategory('Director')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Director">🎥 Director</button>
+          <button onclick="toggleCategory('Activist')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Activist">✊ Activist</button>
+          <button onclick="toggleCategory('Designer')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Designer">👗 Designer</button>
+          <button onclick="toggleCategory('Author')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Author">📚 Author</button>
+          <button onclick="toggleCategory('Chef')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Chef">👨‍🍳 Chef</button>
+          <button onclick="toggleCategory('Entrepreneur')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Entrepreneur">💼 Entrepreneur</button>
+          <button onclick="toggleCategory('Model')" class="cat-btn px-3 py-1.5 bg-gray-700 rounded-full text-sm hover:bg-gray-600 transition-colors" data-cat="Model">📸 Model</button>
+        </div>
+        <p class="text-xs text-gray-500 mt-2">Leave all unselected for a diverse mix</p>
+      </div>
+
+      <!-- Diversity Note -->
+      <div class="mb-6 bg-purple-900/20 border border-purple-700/30 rounded-lg p-3">
+        <p class="text-sm text-purple-300">🌍 Diversity built-in: Generation prioritizes cultural diversity and global representation</p>
+      </div>
+
+      <!-- Progress Area (hidden until generating) -->
+      <div id="generateProgress" class="hidden mb-6">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="loader loader-lg"></div>
+          <span id="generateStatusText" class="text-sm text-gray-300">Starting generation...</span>
+        </div>
+        <div class="h-2 bg-gray-700 rounded-full overflow-hidden">
+          <div id="generateProgressBar" class="h-full bg-purple-500 transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="closeGenerateModal()" id="generateCancelBtn" class="flex-1 px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors">Cancel</button>
+        <button onclick="executeGenerate()" id="generateSubmitBtn" class="flex-1 px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-500 font-medium transition-colors flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Generate & Download
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let celebrities = [];
     let currentIndex = 0;
     let filteredCelebrities = [];
-    let remakeTarget = null; // { clueKey: 'Clue 1', clueNum: 1 }
+    let remakeTarget = null;
+    let generateCount = 20;
+    let selectedCategories = [];
 
     const clueFields = [
       { key: 'Clue 1', label: 'Clue 1', hint: 'Super niche, weird fact', num: 1 },
       { key: 'Clue 2', label: 'Clue 2', hint: 'Interesting but obscure', num: 2 },
-      { key: 'Clue 3', label: 'Clue 3', hint: 'Should start clicking here', num: 3 },
+      { key: 'Clue 3', label: 'Clue 3', hint: 'The "aha" giveaway moment', num: 3 },
       { key: 'Clue 4', label: 'Clue 4', hint: 'Getting obvious', num: 4 },
       { key: 'Clue 5', label: 'Clue 5', hint: 'Dead giveaway', num: 5 },
     ];
 
-    // Load API key from localStorage
+    // Load API key and master list from localStorage
     window.onload = () => {
       const savedKey = localStorage.getItem('claude_api_key');
       if (savedKey) {
@@ -180,6 +262,7 @@
         document.getElementById('apiStatus').textContent = '✓ Saved';
         document.getElementById('apiStatus').className = 'text-xs text-green-400';
       }
+      updateMasterListInfo();
     };
 
     function saveApiKey() {
@@ -193,6 +276,39 @@
         document.getElementById('apiStatus').textContent = 'Not set';
         document.getElementById('apiStatus').className = 'text-xs text-gray-500';
       }
+    }
+
+    function getMasterList() {
+      return JSON.parse(localStorage.getItem('master_celeb_list') || '[]');
+    }
+
+    function addToMasterList(names) {
+      const list = getMasterList();
+      const newList = [...new Set([...list, ...names.map(n => n.toLowerCase())])];
+      localStorage.setItem('master_celeb_list', JSON.stringify(newList));
+      updateMasterListInfo();
+    }
+
+    function clearMasterList() {
+      if (confirm('Clear the master list? This will allow duplicate celebrities in future generations.')) {
+        localStorage.removeItem('master_celeb_list');
+        updateMasterListInfo();
+      }
+    }
+
+    function updateMasterListInfo() {
+      const list = getMasterList();
+      if (list.length > 0) {
+        document.getElementById('masterListInfo').classList.remove('hidden');
+        document.getElementById('masterCount').textContent = list.length;
+      } else {
+        document.getElementById('masterListInfo').classList.add('hidden');
+      }
+    }
+
+    function showUploadSection() {
+      document.getElementById('uploadSection').classList.remove('hidden');
+      document.getElementById('mainContent').classList.add('hidden');
     }
 
     function parseCSV(text) {
@@ -314,7 +430,7 @@
             </button>
           </div>
           <div class="text-right mt-1">
-            <span id="count-${field.key.replace(' ', '-')}" class="text-xs ${(celeb[field.key]?.length || 0) > 30 ? 'text-yellow-400' : 'text-gray-500'}">
+            <span id="count-${field.key.replace(' ', '-')}" class="text-xs ${(celeb[field.key]?.length || 0) > 25 ? 'text-yellow-400' : 'text-gray-500'}">
               ${celeb[field.key]?.length || 0} chars
             </span>
           </div>
@@ -335,7 +451,7 @@
       const countEl = document.getElementById(`count-${field.replace(' ', '-')}`);
       const len = input.value.length;
       countEl.textContent = `${len} chars`;
-      countEl.className = `text-xs ${len > 30 ? 'text-yellow-400' : 'text-gray-500'}`;
+      countEl.className = `text-xs ${len > 25 ? 'text-yellow-400' : 'text-gray-500'}`;
     }
 
     // Remake Modal Functions
@@ -345,7 +461,6 @@
         alert('Please enter your Claude API key first');
         return;
       }
-
       remakeTarget = { clueKey, clueNum };
       document.getElementById('remakeClueNum').textContent = `Clue ${clueNum}`;
       document.getElementById('remakeNote').value = '';
@@ -371,11 +486,11 @@
       btn.innerHTML = '<div class="loader"></div> Generating...';
 
       const clueDescriptions = {
-        1: "Super niche, weird, obscure fact that makes people say 'wait, what?' - something most people don't know",
+        1: "Super niche, weird, obscure fact that makes people say 'wait, what?' - something most people don't know. Should be funny/interesting.",
         2: "Interesting but still obscure - a fun fact that's not widely known",
-        3: "Should start clicking here - if you know the person, this clue should make you start guessing",
+        3: "The 'aha' giveaway moment - if you know this person, THIS is the clue that makes you go 'oh shit, I know who this is!' It should be a well-known fact about them but phrased cleverly.",
         4: "Getting obvious - a well-known fact that narrows it down significantly",
-        5: "Dead giveaway - the most famous/obvious thing about them, everyone should get it now"
+        5: "Dead giveaway - the most famous/obvious thing about them, their signature thing"
       };
 
       const currentClues = clueFields.map(f => `${f.label}: ${celeb[f.key] || '(empty)'}`).join('\n');
@@ -395,9 +510,9 @@ ${remakeTarget.clueKey} should be: ${clueDescriptions[remakeTarget.clueNum]}
 ${note ? `User's note: "${note}"` : ''}
 
 Requirements:
-- Maximum 30 characters (shorter is better)
-- Phrased like a crossword clue (punchy, clever)
-- Should be a FUN fact that teaches something interesting
+- Maximum 25 characters (shorter is better, aim for 15-20)
+- Phrased like a crossword clue (punchy, clever, fun)
+- Should be a FUN fact that makes people say "no way!" or "that's crazy!"
 - Don't repeat information from the other clues
 - No full sentences, just punchy phrases
 
@@ -427,11 +542,9 @@ Respond with ONLY the new clue text, nothing else. No quotes, no explanation.`;
         const data = await response.json();
         const newClue = data.content[0].text.trim();
 
-        // Update the clue
         const originalIndex = celebrities.findIndex(c => c.id === celeb.id);
         celebrities[originalIndex][remakeTarget.clueKey] = newClue;
 
-        // Update the input field
         const inputId = `input-${remakeTarget.clueKey.replace(' ', '-')}`;
         document.getElementById(inputId).value = newClue;
         updateCharCount(document.getElementById(inputId), remakeTarget.clueKey);
@@ -445,10 +558,189 @@ Respond with ONLY the new clue text, nothing else. No quotes, no explanation.`;
       }
     }
 
+    // Generate Batch Modal Functions
+    function openGenerateModal() {
+      const apiKey = document.getElementById('apiKey').value;
+      if (!apiKey) {
+        alert('Please enter your Claude API key first');
+        return;
+      }
+      document.getElementById('generateModal').classList.remove('hidden');
+      document.getElementById('generateProgress').classList.add('hidden');
+      document.getElementById('generateSubmitBtn').disabled = false;
+      document.getElementById('generateSubmitBtn').innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Generate & Download';
+    }
+
+    function closeGenerateModal() {
+      document.getElementById('generateModal').classList.add('hidden');
+    }
+
+    function setGenerateCount(count) {
+      generateCount = count;
+      document.querySelectorAll('.gen-count-btn').forEach(btn => {
+        if (parseInt(btn.dataset.count) === count) {
+          btn.classList.remove('bg-gray-700');
+          btn.classList.add('bg-purple-600');
+        } else {
+          btn.classList.remove('bg-purple-600');
+          btn.classList.add('bg-gray-700');
+        }
+      });
+    }
+
+    function toggleCategory(cat) {
+      const idx = selectedCategories.indexOf(cat);
+      if (idx >= 0) {
+        selectedCategories.splice(idx, 1);
+      } else {
+        selectedCategories.push(cat);
+      }
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        if (selectedCategories.includes(btn.dataset.cat)) {
+          btn.classList.remove('bg-gray-700');
+          btn.classList.add('bg-purple-600');
+        } else {
+          btn.classList.remove('bg-purple-600');
+          btn.classList.add('bg-gray-700');
+        }
+      });
+    }
+
+    async function executeGenerate() {
+      const apiKey = document.getElementById('apiKey').value;
+      const masterList = getMasterList();
+      
+      document.getElementById('generateProgress').classList.remove('hidden');
+      document.getElementById('generateSubmitBtn').disabled = true;
+      document.getElementById('generateCancelBtn').disabled = true;
+      
+      const updateProgress = (text, pct) => {
+        document.getElementById('generateStatusText').textContent = text;
+        document.getElementById('generateProgressBar').style.width = `${pct}%`;
+      };
+
+      const categoryText = selectedCategories.length > 0 
+        ? `Focus on these categories: ${selectedCategories.join(', ')}`
+        : 'Include a diverse mix of categories: actors, musicians, athletes, comedians, TV personalities, directors, activists, designers, authors, chefs, entrepreneurs, models';
+
+      const excludeText = masterList.length > 0
+        ? `\n\nDO NOT include these people (already used): ${masterList.slice(-200).join(', ')}`
+        : '';
+
+      const prompt = `Generate ${generateCount} celebrities for a guessing game called "Who's That?"
+
+${categoryText}
+
+IMPORTANT DIVERSITY REQUIREMENTS:
+- Include people from diverse backgrounds, ethnicities, and cultures
+- Include international celebrities, not just American
+- Mix of genders
+- Mix of eras (some current, some classic)
+- NOT too heavy on any single category
+- Should be recognizable to a general audience but not generic/obvious
+
+For each celebrity, create 5 clues following this EXACT difficulty progression:
+- Clue 1: Super niche, weird fact that makes people go "wait, what?!" - funny/interesting trivia most don't know
+- Clue 2: Still obscure but interesting fact
+- Clue 3: THE "AHA" MOMENT - this is where someone who knows the person should go "oh shit, I know who this is!" Make it a well-known fact phrased cleverly.
+- Clue 4: Getting obvious - narrows it down clearly
+- Clue 5: Dead giveaway - their most famous thing/nickname
+
+CLUE REQUIREMENTS:
+- Maximum 25 characters each (aim for 15-20)
+- Phrased like crossword clues (punchy, no full sentences)
+- Fun, surprising, "no way!" energy
+- Clue 3 MUST be recognizable to fans${excludeText}
+
+Return as JSON array with this exact format:
+[
+  {"Answer": "Name", "Category": "Category", "Clue 1": "...", "Clue 2": "...", "Clue 3": "...", "Clue 4": "...", "Clue 5": "..."},
+  ...
+]
+
+Return ONLY the JSON array, no other text.`;
+
+      try {
+        updateProgress('Generating celebrities...', 20);
+
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true'
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 8000,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error?.message || 'API request failed');
+        }
+
+        updateProgress('Processing results...', 70);
+
+        const data = await response.json();
+        let jsonText = data.content[0].text.trim();
+        
+        // Try to extract JSON if wrapped in markdown
+        const jsonMatch = jsonText.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+          jsonText = jsonMatch[0];
+        }
+        
+        const generated = JSON.parse(jsonText);
+
+        updateProgress('Creating CSV...', 90);
+
+        // Add to master list
+        const newNames = generated.map(c => c.Answer);
+        addToMasterList(newNames);
+
+        // Create CSV
+        const headers = ['Answer', 'Clue 1', 'Clue 2', 'Clue 3', 'Clue 4', 'Clue 5', 'Category'];
+        const csvContent = [
+          headers.join(','),
+          ...generated.map(c =>
+            headers.map(h => `"${(c[h] || '').replace(/"/g, '""')}"`).join(',')
+          )
+        ].join('\n');
+
+        // Download
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `generated_clues_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+
+        updateProgress(`Done! Generated ${generated.length} celebrities`, 100);
+
+        setTimeout(() => {
+          closeGenerateModal();
+        }, 1500);
+
+      } catch (error) {
+        alert('Error: ' + error.message);
+        document.getElementById('generateProgress').classList.add('hidden');
+      } finally {
+        document.getElementById('generateSubmitBtn').disabled = false;
+        document.getElementById('generateCancelBtn').disabled = false;
+      }
+    }
+
     function approveAndNext() {
       const celeb = filteredCelebrities[currentIndex];
       const originalIndex = celebrities.findIndex(c => c.id === celeb.id);
       celebrities[originalIndex].approved = true;
+
+      // Add to master list when approved
+      addToMasterList([celeb.Answer]);
 
       if (currentIndex < filteredCelebrities.length - 1) {
         currentIndex++;
@@ -496,9 +788,12 @@ Respond with ONLY the new clue text, nothing else. No quotes, no explanation.`;
       a.click();
     }
 
-    // Close modal on escape key
+    // Close modals on escape key
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeRemakeModal();
+      if (e.key === 'Escape') {
+        closeRemakeModal();
+        closeGenerateModal();
+      }
     });
   </script>
 </body>
