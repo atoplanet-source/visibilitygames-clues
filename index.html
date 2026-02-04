@@ -247,11 +247,11 @@
     let selectedCategories = [];
 
     const clueFields = [
-      { key: 'Clue 1', label: 'Clue 1', hint: 'Super niche, weird fact', num: 1 },
-      { key: 'Clue 2', label: 'Clue 2', hint: 'Interesting but obscure', num: 2 },
-      { key: 'Clue 3', label: 'Clue 3', hint: 'The "aha" giveaway moment', num: 3 },
-      { key: 'Clue 4', label: 'Clue 4', hint: 'Getting obvious', num: 4 },
-      { key: 'Clue 5', label: 'Clue 5', hint: 'Dead giveaway', num: 5 },
+      { key: 'Clue 1', label: 'Clue 1', hint: 'Weird/niche - "hmm who could that be?"', num: 1 },
+      { key: 'Clue 2', label: 'Clue 2', hint: 'Still obscure, still curious', num: 2 },
+      { key: 'Clue 3', label: 'Clue 3', hint: 'The "aha!" moment', num: 3 },
+      { key: 'Clue 4', label: 'Clue 4', hint: 'Confirms it, still interesting', num: 4 },
+      { key: 'Clue 5', label: 'Clue 5', hint: 'Unmistakable, 100%', num: 5 },
     ];
 
     // Load API key and master list from localStorage
@@ -430,7 +430,7 @@
             </button>
           </div>
           <div class="text-right mt-1">
-            <span id="count-${field.key.replace(' ', '-')}" class="text-xs ${(celeb[field.key]?.length || 0) > 25 ? 'text-yellow-400' : 'text-gray-500'}">
+            <span id="count-${field.key.replace(' ', '-')}" class="text-xs ${(celeb[field.key]?.length || 0) > 28 ? 'text-yellow-400' : 'text-gray-500'}">
               ${celeb[field.key]?.length || 0} chars
             </span>
           </div>
@@ -451,7 +451,7 @@
       const countEl = document.getElementById(`count-${field.replace(' ', '-')}`);
       const len = input.value.length;
       countEl.textContent = `${len} chars`;
-      countEl.className = `text-xs ${len > 25 ? 'text-yellow-400' : 'text-gray-500'}`;
+      countEl.className = `text-xs ${len > 28 ? 'text-yellow-400' : 'text-gray-500'}`;
     }
 
     // Remake Modal Functions
@@ -486,11 +486,11 @@
       btn.innerHTML = '<div class="loader"></div> Generating...';
 
       const clueDescriptions = {
-        1: "Super niche, specific trivia - a REAL, verifiable fact most people don't know. Should make people say 'wait, really??' Think celebrity fun fact listicle.",
-        2: "Interesting lesser-known fact - specific detail that's true but not widely known. Include numbers, names, or specific details when possible.",
-        3: "The 'aha' giveaway moment - THIS is where fans go 'oh shit, I know who this is!' Must be a well-known signature fact phrased cleverly.",
-        4: "Getting obvious - a famous, well-known fact that narrows it down clearly",
-        5: "Dead giveaway - their most famous thing, nickname, or signature catchphrase"
+        1: "Super weird/niche obscure fact - something that makes people go 'hmm, that's strange... who could that be?' A real, researched fun fact that's genuinely interesting and unusual.",
+        2: "Another interesting lesser-known fact - still obscure, still makes you wonder. Should spark curiosity, not give it away yet.",
+        3: "The 'aha' moment - when they figure it out here, they should think 'OH! And wow, I never knew that first stuff about them!' A well-known fact phrased cleverly.",
+        4: "Getting obvious - confirms their guess, but still an interesting fact. They're nodding 'yep, definitely them'",
+        5: "Dead giveaway - unmistakable, 100% confirms it. Not their literal name, but their most iconic thing that leaves no doubt."
       };
 
       const currentClues = clueFields.map(f => `${f.label}: ${celeb[f.key] || '(empty)'}`).join('\n');
@@ -507,24 +507,29 @@ Generate a NEW ${remakeTarget.clueKey}: ${clueDescriptions[remakeTarget.clueNum]
 
 ${note ? `User's guidance: "${note}"` : ''}
 
-CRITICAL - MUST BE FACTUAL:
-- Use REAL, verifiable facts only (not made up)
-- Include specific details: numbers, dates, names, stats
-- Think "celebrity fun facts listicle" energy
-- The kind of trivia that makes people say "no way, that's true??"
+RESEARCH & CREATE AN INTERESTING CLUE:
+- Must be a REAL, verifiable fact (do your research!)
+- Focus on INTERESTING and WEIRD over just "specific"
+- The vibe: "hmm that's strange, I wonder who that is?" → "oh wow I never knew that about them!"
+- Think celebrity fun facts that make people go "wait, really??"
 
-Good example clues:
-- "Food poisoning flu game" (specific incident)
-- "Terrified of butterflies" (real phobia)  
-- "$7 to highest paid actor" (specific journey)
-- "Won Slam while pregnant" (verifiable fact)
+GOOD CLUES (interesting, niche, make you think):
+- "Food poisoning flu game" (weird specific incident)
+- "Terrified of butterflies" (unexpected quirk)
+- "Ate only potatoes for a year" (strange but true)
+- "Named after a department store" (unusual origin)
+- "Legally changed name to a symbol" (iconic weird fact)
 
-Bad clues to avoid:
-- Generic facts ("Won awards", "From LA")
-- Vague descriptions ("Known for comedy")
-- Made-up or unverifiable claims
+BAD CLUES (generic, boring, too broad):
+- "Grammy winner" (who cares, so generic)
+- "From California" (tells you nothing)
+- "Known for comedy" (lazy, not interesting)
+- "Has 3 kids" (boring unless there's something weird about it)
 
-Format: Max 25 chars, crossword-style (punchy phrase, no sentences)
+FORMAT: 
+- Max 28 characters (aim for 15-23)
+- Crossword-style punchy phrase that makes sense
+- No full sentences
 
 Respond with ONLY the new clue text. No quotes, no explanation.`;
 
@@ -648,38 +653,46 @@ DIVERSITY REQUIREMENTS:
 - NOT too heavy on any single category
 - Recognizable to a general audience but not generic/obvious
 
-RESEARCH-BASED CLUES - THIS IS CRITICAL:
-Each clue must be a REAL, VERIFIABLE fact. Think "celebrity fun facts listicle" energy:
-- Specific numbers (ages, amounts, dates, stats)
-- Real incidents, quirks, or stories from their life
-- Actual quotes, nicknames, or things they're known for saying/doing
-- Real connections to other celebrities, places, or events
-- The kind of trivia that makes people say "wait, really??" because it's TRUE
+RESEARCH INTERESTING FACTS FOR EACH CELEBRITY:
+Do research and find genuinely interesting, weird, niche facts. NOT generic trivia.
+- Real incidents, quirks, phobias, or unusual stories from their life
+- Unexpected connections, origins, or little-known history
+- The kind of facts that make people go "wait, really?? I never knew that!"
+- Think "celebrity fun facts listicle" energy - stuff that's actually interesting to learn
 
-EXAMPLES OF GOOD CLUES (specific, factual, fun):
-- "Food poisoning flu game" (MJ's famous 1997 finals game)
-- "Terrified of butterflies" (Nicole Kidman's real phobia)
-- "$7 to highest paid actor" (The Rock's rags to riches)
-- "Wore #12 once, scored 49" (MJ's jersey was stolen)
-- "Won Slam while pregnant" (Serena's 2017 Australian Open)
+THE PLAYER'S EMOTIONAL JOURNEY:
+- Clues 1-2: "Hmm, that's weird/interesting... who could that be?" (curiosity, intrigue)
+- Clues 3-4: When they figure it out → "OH! And wow, I never knew that about them!" (surprise + learning)
+- Clue 5: "Of course, 100% that's them" (confirmation)
 
-EXAMPLES OF BAD CLUES (generic, vague, unverifiable):
-- "Grammy winner" (too generic)
-- "From California" (too broad)
-- "Known for comedy" (not specific)
-- "Has a famous laugh" (unverifiable)
+EXAMPLES OF GOOD CLUES (interesting, niche, make you think):
+- "Food poisoning flu game" (weird specific incident)
+- "Terrified of butterflies" (unexpected phobia)
+- "Ate only potatoes for a year" (strange method acting)
+- "Named after a department store" (unusual name origin)
+- "Legally changed name to a symbol" (iconic weird choice)
+- "Banned from SNL for life" (intriguing incident)
+- "Childhood pen pals with Tupac" (unexpected connection)
+
+EXAMPLES OF BAD CLUES (generic, boring, don't use these):
+- "Grammy winner" (so what? too generic)
+- "From California" (tells you nothing interesting)
+- "Known for comedy" (lazy, boring)
+- "Has 3 kids" (who cares unless something weird about it)
+- "Starred in blockbusters" (meaningless)
+- "Very successful" (obviously)
 
 5 CLUE PROGRESSION:
-- Clue 1: Super niche trivia - obscure but TRUE fact that makes people go "wait, what?!"
-- Clue 2: Interesting lesser-known fact - specific detail most don't know
-- Clue 3: THE "AHA" GIVEAWAY - well-known signature fact that fans instantly recognize, phrased cleverly
-- Clue 4: Getting obvious - famous fact that narrows it down clearly
-- Clue 5: Dead giveaway - their most famous thing, nickname, or signature
+- Clue 1: Super weird/niche fact - obscure, interesting, makes them go "hmm who could that be?"
+- Clue 2: Another interesting lesser-known fact - still curious, still guessing
+- Clue 3: THE "AHA" MOMENT - when they get it here, they think "oh wow I didn't know that earlier stuff!"
+- Clue 4: Getting obvious - confirms it, but still interesting
+- Clue 5: Dead giveaway - unmistakable (not their name, but leaves NO doubt)
 
 FORMATTING:
-- Maximum 25 characters (aim for 15-20)
-- Crossword clue style (punchy phrases, no full sentences)
-- Include specific details when possible (numbers, names, years)${excludeText}
+- Maximum 28 characters (aim for 15-23)
+- Crossword clue style (punchy phrases that make sense, no full sentences)
+- Numbers/dates/stats are fine but NOT required - focus on interesting over specific${excludeText}
 
 Return as JSON array:
 [{"Answer": "Name", "Category": "Category", "Clue 1": "...", "Clue 2": "...", "Clue 3": "...", "Clue 4": "...", "Clue 5": "..."}, ...]
