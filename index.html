@@ -430,7 +430,7 @@
             </button>
           </div>
           <div class="text-right mt-1">
-            <span id="count-${field.key.replace(' ', '-')}" class="text-xs ${(celeb[field.key]?.length || 0) > 28 ? 'text-yellow-400' : 'text-gray-500'}">
+            <span id="count-${field.key.replace(' ', '-')}" class="text-xs ${(celeb[field.key]?.length || 0) > 31 ? 'text-yellow-400' : 'text-gray-500'}">
               ${celeb[field.key]?.length || 0} chars
             </span>
           </div>
@@ -451,7 +451,7 @@
       const countEl = document.getElementById(`count-${field.replace(' ', '-')}`);
       const len = input.value.length;
       countEl.textContent = `${len} chars`;
-      countEl.className = `text-xs ${len > 28 ? 'text-yellow-400' : 'text-gray-500'}`;
+      countEl.className = `text-xs ${len > 31 ? 'text-yellow-400' : 'text-gray-500'}`;
     }
 
     // Remake Modal Functions
@@ -522,20 +522,30 @@ The clue MUST be:
 2. Interesting/weird enough to make people think "hmm, who could that be?"
 3. Actually about THIS person, not a generic clue that could fit anyone
 
+=== WRITING STYLE ===
+Write a COMPLETE, grammatically correct phrase that makes sense when read aloud.
+- NOT cryptic fragments or word salad
+- Must be a complete thought (not cut off)
+- Brevity from smart word choice, not deleting needed words
+
 === FORMAT ===
-- Max 28 characters (aim for 15-23)
-- Crossword-style punchy phrase that makes sense
-- No full sentences
+- Max 31 characters
+- Complete phrase, proper grammar
+- Punchy but readable
 
-=== BAD (generic, could be anyone) ===
-- "Grammy winner" 
-- "From California"
-- "Known for comedy"
+=== BAD EXAMPLES (avoid these patterns) ===
+✗ "Grammy winner" - generic, fits thousands
+✗ "From California" - too broad
+✗ "Known for comedy" - vague
+✗ "Flu game star" - incomplete thought
+✗ "Butterflies fear" - broken grammar
+✗ "Before fame $7" - word salad
 
-=== GOOD (specific to the actual person) ===
-- "Food poisoning flu game" (MJ's real incident)
-- "Terrified of butterflies" (Nicole Kidman's actual phobia)
-- "Ate only potatoes for a year" (real method acting story)
+=== GOOD EXAMPLES (specific, complete phrases) ===
+✓ "Played flu game food poisoned" - complete thought
+✓ "Deathly afraid of butterflies" - complete phrase
+✓ "Had only $7 before fame" - complete, specific
+✓ "Ate only potatoes for a year" - complete, surprising
 
 Respond with ONLY the new clue text about ${celeb.Answer}. No quotes, no explanation.`;
 
@@ -695,10 +705,30 @@ EXAMPLES OF BAD CLUES (generic, boring, don't use these):
 - Clue 4: Getting obvious - confirms it, but still interesting
 - Clue 5: Dead giveaway - unmistakable (not their name, but leaves NO doubt)
 
+=== WRITING STYLE - CRITICAL ===
+Each clue must be a COMPLETE, grammatically correct phrase.
+- Must make sense when read aloud as a standalone phrase
+- Must be a complete thought, NOT a fragment or word salad
+- Brevity from smart word choice, NOT from cutting necessary words
+- Can be clever, but meaning must be clear
+
 FORMATTING:
-- Maximum 28 characters (aim for 15-23)
-- Crossword clue style (punchy phrases that make sense, no full sentences)
-- Numbers/dates/stats are fine but NOT required - focus on interesting over specific${excludeText}
+- Maximum 31 characters
+- Complete phrases with proper grammar
+- Punchy but readable - NOT cryptic nonsense
+
+BAD CLUE PATTERNS TO AVOID:
+✗ "Flu game star" - incomplete (what ABOUT the flu game?)
+✗ "Butterflies fear" - broken grammar
+✗ "Before fame $7" - word salad
+✗ "Known laugh" - fragment
+✗ "The voice" - too vague
+
+GOOD CLUE PATTERNS:
+✓ "Played flu game food poisoned" - complete thought
+✓ "Deathly afraid of butterflies" - complete phrase
+✓ "Had only $7 before fame" - complete, specific
+✓ "Won Australian Open pregnant" - complete, verifiable${excludeText}
 
 Return as JSON array:
 [{"Answer": "Name", "Category": "Category", "Clue 1": "...", "Clue 2": "...", "Clue 3": "...", "Clue 4": "...", "Clue 5": "..."}, ...]
